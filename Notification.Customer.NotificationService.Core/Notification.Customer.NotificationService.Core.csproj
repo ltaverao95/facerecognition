@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MassTransit" Version="8.2.5" />
+		<PackageReference Include="MassTransit.Extensions.DependencyInjection" Version="7.3.1" />
+		<PackageReference Include="MassTransit.RabbitMQ" Version="8.2.5" />
+        <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+        <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="2.1.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Messaging.InterfacesConstants\Messaging.Core.csproj" />
+	  <ProjectReference Include="..\Notifications.Customer.Email\Notification.Customer.EmailService.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<SupportedPlatform Include="linux" />
+	</ItemGroup>
+
+</Project>

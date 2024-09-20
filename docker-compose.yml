@@ -1,0 +1,104 @@
+services:
+  faces-api:
+    image: ltaverao95/faces-api:1.0
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - AzureSubscriptionKey=YOUR_AZURE_KEY  
+      - AzureEndPoint=YOUR_AZURE_API_ENDPOINT
+    networks:
+      - faces-back
+
+  faces-webmvc:
+    image: ltaverao95/faces-web:1.0
+    restart: unless-stopped
+    depends_on:
+        - rabbitmq
+        - orders-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - OrdersApiUrl=http://orders-api
+      - SignalRHubUrl=http://orders-api
+    networks:
+      - faces-back
+
+  notification-customer-notificationservice:
+    image: ltaverao95/notification-service:1.0
+    restart: unless-stopped
+    depends_on:
+        - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    networks:
+      - faces-back
+
+  orders-api:
+    image: ltaverao95/orders-api:1.0
+    restart: unless-stopped
+    depends_on:
+        - rabbitmq
+        - sqlDbService
+        - faces-api  
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - OrdersContextConnection=server=sqlDbService;Database=OrdersDb;User Id=sa;password=Password12345;TrustServerCertificate=true;
+      - FacesApiUrl=http://faces-api
+    networks:
+      - faces-back
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    volumes:
+        - rabbitmq-data:/var/lib/rabbitmq/
+        - rabbitmq-data:/var/log/rabbitmq
+    networks:
+        - faces-back  
+
+  sqlDbService:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    restart: unless-stopped
+    networks:
+      - faces-back
+    env_file:
+      - sqlserver.env
+      - sapassword.env
+    volumes:
+      - ./builds/mssql:/var/opt/sqlserver
+
+  nginx-stack:
+    image: ltaverao95/faces-nginx:1.0
+    restart: unless-stopped
+    volumes:
+      - nginx-config:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      - faces-webmvc
+      - rabbitmq
+      - sqlDbService
+      - faces-api
+      - orders-api
+    healthcheck:
+      test: service nginx status || exit 1
+      interval: 1m
+      timeout: 5s
+      retries: 3
+    networks:
+      - faces-back
+      - faces-front
+
+volumes:
+  rabbitmq-data:
+  nginx-config:
+
+networks:
+  faces-back:
+  faces-front:

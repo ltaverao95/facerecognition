@@ -1,0 +1,22 @@
+﻿@model Faces.WebMvc.Models.OrderViewModel
+
+@{
+    ViewData["Title"] = "Register order";
+}
+
+<div>
+    <h2>Order Registration</h2>
+</div>
+
+<form asp-controller="Home" asp-action="RegisterOrder" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label asp-for="UserEmail" class="form-label"></label>
+        <input asp-for="UserEmail" class="form-control" aria-describedby="emailHelp" />
+        <div id="emailHelp" class="form-text">We'll never share your email with anyone else.</div>
+    </div>
+    <div class="mb-3">
+        <p>Upload your file using the button bellow</p>
+        <input type="file" name="file"  class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>

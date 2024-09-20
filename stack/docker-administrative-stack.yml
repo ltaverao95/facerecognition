@@ -1,0 +1,58 @@
+services:
+  visualizer:
+    image: dockersamples/visualizer
+    ports:
+      - 8081:8080
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - faces-back
+      - faces-front
+
+  portainer:
+    image: portainer/portainer
+    command: -H unix:///var/run/docker.sock
+    ports:
+      - 9000:9000
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - faces-back
+      - faces-front
+
+  docker-cleaner:
+    image: meltwater/docker-cleanup
+    environment:
+      - CLEAN_PERIOD=900
+      - DELAY_TIME=600
+    command:
+      - --log-driver json-file
+      - --log-opt max-size=1m
+      - --log-opt max-file=2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    deploy:
+      mode: global
+    networks:
+      - faces-back
+      - faces-front
+
+volumes:
+  portainer_data:
+
+networks:
+  faces-back:
+  faces-front:

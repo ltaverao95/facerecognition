@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "serviceActions": {
+        "faces-api": "StartDebugging",
+        "faces-webmvc": "StartDebugging",
+        "notification-customer-notificationservice": "StartDebugging",
+        "orders-api": "StartDebugging"
+      }
+    }
+  }
+}

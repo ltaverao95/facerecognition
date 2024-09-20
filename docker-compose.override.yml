@@ -1,0 +1,40 @@
+services:
+  faces.api:
+    image: faces/faces-api:latest
+    build:
+      context: .
+      dockerfile: Faces.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  faces.webmvc:
+    image: faces/faces-web:latest
+    build:
+      context: .
+      dockerfile: Faces.WebMvc/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  notification.customer.notificationservice:
+    image: faces/notification-service:latest
+    build:
+      context: .
+      dockerfile: Customer.NotificationService/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      
+
+  orders.api:
+    image: faces/orders-api:latest
+    build:
+      context: .
+      dockerfile: Orders.API/Dockerfile
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - OrdersContextConnection=server=sqlDbService;Database=OrdersDb;User Id=sa;password=Password12345;TrustServerCertificate=true;
+
+  nginx-stack:
+    image: faces/faces-nginx
+    build:
+      context: ./faces-nginx
+      dockerfile: Dockerfile

@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Notification.Customer.NotificationService": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

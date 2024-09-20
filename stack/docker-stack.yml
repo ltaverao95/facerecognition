@@ -1,0 +1,138 @@
+version: "3.8" # Required to deploy in Portainer
+
+services:
+  faces-api:
+    image: ltaverao95/faces-api:1.0
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - AzureSubscriptionKey=YOUR_AZURE_KEY  
+      - AzureEndPoint=YOUR_AZURE_API_ENDPOINT
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back
+
+  faces-webmvc:
+    image: ltaverao95/faces-web:1.0
+    depends_on:
+      - rabbitmq
+      - orders-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - OrdersApiUrl=http://orders-api
+      - SignalRHubUrl=http://orders-api
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back
+
+  notification-customer-notificationservice:
+    image: ltaverao95/notification-service:1.0
+    depends_on:
+      - rabbitmq
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back
+
+  orders-api:
+    image: ltaverao95/orders-api:1.0
+    depends_on:
+      - rabbitmq
+      - sqlDbService
+      - faces-api  
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_HTTP_PORTS=80
+      - OrdersContextConnection=server=sqlDbService;Database=OrdersDb;User Id=sa;password=Password12345;TrustServerCertificate=true;
+      - FacesApiUrl=http://faces-api
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+      - rabbitmq-logs:/var/log/rabbitmq
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back  
+
+  sqlDbService:
+    image: mcr.microsoft.com/mssql/server:2022-CU14-ubuntu-22.04
+    networks:
+      - faces-back
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_DATA_DIR=/var/opt/sqlserver/data
+      - MSSQL_LOG_DIR=/var/opt/sqlserver/log
+      - MSSQL_BACKUP_DIR=/var/opt/sqlserver/backup
+      - MSSQL_SA_PASSWORD=Password12345
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+
+  nginx-stack:
+    image: ltaverao95/faces-nginx:1.0
+    volumes:
+      - nginx-config:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    depends_on:
+      - faces-webmvc
+      - rabbitmq
+      - sqlDbService
+      - faces-api
+      - orders-api
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == worker
+    networks:
+      - faces-back
+      - faces-front
+
+volumes:
+  rabbitmq-data:
+  rabbitmq-logs:
+  nginx-config:
+
+networks:
+  faces-back:
+  faces-front:
