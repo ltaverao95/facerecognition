@@ -1,6 +1,13 @@
 # Face Recognition Project
 
-This project as part of the course "_Building microservices using asp.net core 5.0 and docker_".
+This project as part of the course "_Building microservices using asp.net core 5.0 and docker_" from Udemy is based in microservices using face recognition systems from Microsoft.
+
+The main idea for this project is to upload an image and your email address, this will dispatch internal events to:
+- Store information in DB.
+- Dispatch events using RabbitMQ and Masstransit to perform actions in server side.
+- Call Microsoft Congnitive Services Vision Faces to detect people from that image.
+- Send an email to the user with the faces found on the image.
+- Send push notifications to main view to refresh data.
 
 ## Architecture
 
